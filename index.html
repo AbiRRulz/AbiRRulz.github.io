@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html> 
+  <head>
+    <title>Janglay</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      canvas {
+        border: 1px solid black; /* Add a border for illustration */
+      }
+    </style>
+  </head>
+  <body>
+	<!--This draws the canvas on the webpage -->
+    <canvas id="mycanvas"></canvas> 
+  </body>
+ 
+  <!-- Include the processing.js library -->
+  <!-- See https://khanacademy.zendesk.com/hc/en-us/articles/202260404-What-parts-of-ProcessingJS-does-Khan-Academy-support- for differences -->
+  <script src="https://cdn.jsdelivr.net/processing.js/1.4.8/processing.min.js"></script> 
+  <script>
+  var programCode = function(processingInstance) {
+    with (processingInstance) {
+      size(900, 900); 
+      frameRate(60);
+        
+      // Paste code from Khan Academy here:
+      // Paddle variables
+var paddleWidth = 135;
+var paddleHeight = 45;
+var paddleTop = 810;
+var paddleLeft;
+
+// Ball variables
+var ballSize = 45;
+var ballPosX = 225;
+var ballPosY = 405 / 4;
+var ballSpeed = 7;
+var ballDirectionX = "right";
+var ballDirectionY = "down";
+
+// Player variables
+var playerLives = 3;
+var playerScore = 0;
+var level = 1;
+
+// Variable for changing scenes
+var gameState = "homePage";
+keyCode = "null";
+
+// Enemy variables
+var enemy = [];
+var numberOfEnemies = 1;
+var enemySize = 135 / 2;
+
+// Function to draw paddle
+var drawPaddle = function () {
+    fill (255, 255, 255);
+    rect (paddleLeft, paddleTop, paddleWidth, paddleHeight);
+};
+
+// Function to move paddle
+var updatePaddle = function () {
+    paddleLeft = mouseX - paddleWidth / 2;
+};
+
+// Function to draw ball
+var drawBall = function () {
+    fill (255, 255, 255);
+    ellipse (ballPosX, ballPosY, ballSize, ballSize);
+};
+
+// Function of ball bouncing off the edges
+var updateBall = function () {
+    // If ball hits right side of screen
+    if (ballPosX > 900 - ballSize / 2) {
+        ballDirectionX = "left";
+    }
+    // If ball hits left side of screen
+    if (ballPosX < 0 + ballSize / 2) {
+        ballDirectionX = "right";
+    }
+    
+    // Collision of ball with paddle
+    if (ballPosY > paddleTop - ballSize / 2 && ballPosY < paddleTop + paddleHeight) {
+        if (ballPosX > paddleLeft && ballPosX < paddleLeft + paddleWidth) {
+            ballDirectionY = "up";
+        }
+    }
+    
+    // If ball goes off the screen
+    if (ballPosY >= 920) {
+        playerLives--;
+        ballPosY = 405 / 4;
+    }
+    // If ball hits top part of screen
+    if (ballPosY < 0 + ballSize / 2) {
+        ballDirectionY = "down";
+    }
+    
+    // Changes direction of ball in X axis
+    if (ballDirectionX === "right") {
+        ballPosX += ballSpeed;
+    } else {
+        ballPosX -= ballSpeed;
+    }
+    
+    // Changes direction of ball in Y axis
+    if (ballDirectionY === "down") {
+        ballPosY += ballSpeed;
+    } else {
+        ballPosY -= ballSpeed;
+    }
+};
+
+// Function to create multiple enemies
+var createEnemies = function () {
+    // Loop to give characteristics of multiple enemies
+    for (var i = 0; i < numberOfEnemies; i++) {
+        enemy.push ({
+        x: random (15, 885),
+        y: random (45, 450),
+        c: color (random(255), random(255), random(255)),
+        collision: false
+        });
+    }
+};
+
+// Function to draw multiple enemies
+var drawEnemies = function () {
+    // Loop to draw multiple enemies
+    for (var j = 0; j < enemy.length; j++) {
+        fill(enemy[j].c);
+        ellipse (enemy[j].x, enemy[j].y, enemySize, enemySize);
+    }
+};
+
+// Function to update multiple enemies
+var updateEnemies = function () {
+    // Loop to update multiple enemies
+    for (var k = 0; k < enemy.length; k++) {
+        if (dist (enemy[k].x, enemy[k].y, ballPosX, ballPosY) < enemySize / 2 + ballSize / 2) {
+            enemy[k].collision = true;
+        }
+    }
+};
+
+// Function to kill multiple enemies
+var killEnemies = function () {
+    // Loop to kill multiple enemies
+    for(var l = 0; l < enemy.length; l++) {
+        if(enemy[l].collision){
+            enemy.splice(l, 1);
+            playerScore++;
+            numberOfEnemies--;
+        }
+    }
+};
+
+// Function to update game
+var updateGame = function () {
+    // Calls function to draw paddle
+    drawPaddle ();
+    
+    // Calls function to move paddle
+    updatePaddle ();
+    
+    // Calls function to draw ball
+    drawBall ();
+    
+    // Calls function to bounce ball off the edges
+    updateBall ();
+    
+    // Shows player lives on top
+    textSize (20);
+    text ("Score: " + playerScore, 135, 45);
+    text ("Level: " + level, 450, 45);
+    text ("Lives: " + playerLives, 765, 45);
+            
+    // Calls function to draw multiple enemies
+    drawEnemies ();
+    
+    // Calls function to update enemies
+    updateEnemies ();
+};
+
+// Function to update level
+var updateLevel = function () {
+    ballSpeed += 3;
+    level++;
+    createEnemies ();
+}
+
+draw= function() {
+    // Draws black background
+    background (0, 0, 0);
+    textAlign (CENTER, CENTER);
+    
+    // Switch to change scenes
+    switch (gameState) {
+        // Home page
+        case "homePage" :
+            fill(255, 255, 255);
+            textSize (45);
+            text ("Janglay", 450, 225);
+            textSize (135 / 4);
+            text ("Press space to start the game", 450, 675);
+            
+            // Goes to level 1
+            if (keyCode === 32) {
+                createEnemies ();
+                gameState = "level1";
+            }
+            break;
+            
+        // Level 1 scene
+        case "level1" :
+            // Calls function to update game
+            updateGame ();
+            
+            // Goes to level 2 if all enemies are killed
+            if (numberOfEnemies === 0) {
+                numberOfEnemies = 2;
+                updateLevel ();
+                gameState = "level2";
+            }
+            
+            // Game is over if all player lives are over
+            if (playerLives === 0) {
+                gameState = false;
+            }
+            break;
+            
+        // Level 2 scene
+        case "level2" :
+            // Calls function to update game
+            updateGame ();
+            
+            // Goes to level 2 if all enemies are killed
+            if (numberOfEnemies === 0) {
+                numberOfEnemies = 3;
+                updateLevel ();
+                gameState = "level3";
+            }
+            
+            // Game is over if all player lives are over
+            if (playerLives === 0) {
+                gameState = false;
+            }
+            break;
+            
+        // Level 3 scene
+        case "level3" :
+            // Calls function to update game
+            updateGame ();
+            
+            // Goes to level 3 if all enemies are killed
+            if (numberOfEnemies === 0) {
+                numberOfEnemies = 4;
+                updateLevel ();
+                gameState = "level4";
+            }
+            
+            // Game is over if all player lives are over
+            if (playerLives === 0) {
+                gameState = false;
+            }
+            break;
+            
+        // Level 4 scene
+        case "level4" :
+            // Calls function to update game
+            updateGame ();
+            
+            // Goes to victory scene if all enemies are killed
+            if (numberOfEnemies === 0) {
+                numberOfEnemies = 5;
+                updateLevel ();
+                gameState = "level5";
+            }
+            
+            // Game is over if all player lives are over
+            if (playerLives === 0) {
+                gameState = false;
+            }
+            break;
+            
+        // Level 5 scene
+        case "level5" :
+            // Calls function to update game
+            updateGame ();
+            
+            // Goes to level 5 if all enemies are killed
+            if (numberOfEnemies === 0) {
+                numberOfEnemies = 6;
+                updateLevel ();
+                gameState = "level6";
+            }
+            
+            // Game is over if all player lives are over
+            if (playerLives === 0) {
+                gameState = false;
+            }
+            break;
+            
+        // Level 6 scene
+        case "level6" :
+            // Calls function to update game
+            updateGame ();
+            
+            // Goes to level 6 if all enemies are killed
+            if (numberOfEnemies === 0) {
+                numberOfEnemies = 7;
+                updateLevel ();
+                gameState = "level7";
+            }
+            
+            // Game is over if all player lives are over
+            if (playerLives === 0) {
+                gameState = false;
+            }
+            break;
+            
+        // Level 7 scene
+        case "level7" :
+            // Calls function to update game
+            updateGame ();
+            
+            // Goes to level 7 if all enemies are killed
+            if (numberOfEnemies === 0) {
+                numberOfEnemies = 8;
+                updateLevel ();
+                gameState = "level8";
+            }
+            
+            // Game is over if all player lives are over
+            if (playerLives === 0) {
+                gameState = false;
+            }
+            break;
+            
+        // Level 8 scene
+        case "level8" :
+            // Calls function to update game
+            updateGame ();
+            
+            // Goes to level 8 if all enemies are killed
+            if (numberOfEnemies === 0) {
+                numberOfEnemies = 9;
+                updateLevel ();
+                gameState = "level9";
+            }
+            
+            // Game is over if all player lives are over
+            if (playerLives === 0) {
+                gameState = false;
+            }
+            break;
+            
+        // Level 9 scene
+        case "level9" :
+            // Calls function to update game
+            updateGame ();
+            
+            // Goes to level 9 if all enemies are killed
+            if (numberOfEnemies === 0) {
+                numberOfEnemies = 10;
+                updateLevel ();
+                gameState = "level10";
+            }
+            
+            // Game is over if all player lives are over
+            if (playerLives === 0) {
+                gameState = false;
+            }
+            break;
+            
+        // Level 10 scene
+        case "level10" :
+            // Calls function to update game
+            updateGame ();
+            
+            // Goes to level 10 if all enemies are killed
+            if (numberOfEnemies === 0) {
+                createEnemies ();
+                gameState = "victoryPage";
+            }
+            
+            // Game is over if all player lives are over
+            if (playerLives === 0) {
+                gameState = false;
+            }
+            break;
+        
+        // Victory Scene    
+        case "victoryPage" :
+            fill(0, 255, 0);
+            textSize (45);
+            text ("You Won!", 450, 225);
+            text ("Score: " + playerScore, 450, 675 / 2);
+            textSize (135 / 4);
+            text ("Press space to go to main page", 450, 675);
+            
+            // Goes to home page if mouse button in clicked
+            if (keyCode === 32) {
+                playerLives = 3;
+                enemy = [];
+                numberOfEnemies = 1;
+                ballSpeed = 27 / 4;
+                level = 1; 
+                playerScore = 0;
+                gameState = "homePage";
+            }
+            break;
+            
+            // Game over scene
+            default :
+            fill(255, 0, 0);
+            textSize (45);
+            text ("Game Over", 450, 225);
+            text ("Score: " + playerScore, 450, 675 / 2);
+            textSize (135 / 4);
+            text ("Press space to continue", 450, 675);
+            
+            // Goes to home page if mouse button in clicked
+            if (keyCode === 32) {
+                playerLives = 3;
+                enemy = [];
+                numberOfEnemies = 1;
+                ballSpeed = 27 / 4;
+                level = 1;
+                playerScore = 0;
+                gameState = "homePage";
+            }
+            break;
+    }
+    // Resets keycode to null
+    keyCode = "null";
+    
+    // Calls function to kill enemies
+    killEnemies ();
+};
+
+    }};
+
+  // Get the canvas that ProcessingJS will use
+  var canvas = document.getElementById("mycanvas"); 
+  // Pass the function to ProcessingJS constructor
+  var processingInstance = new Processing(canvas, programCode); 
+  </script>
+</html>
